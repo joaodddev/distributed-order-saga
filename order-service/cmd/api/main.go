@@ -1,13 +1,16 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
 	"github.com/joaodddev/distributed-order-saga/order-service/internal/application/usecase"
 	httpinfra "github.com/joaodddev/distributed-order-saga/order-service/internal/infrastructure/http"
 	"github.com/joaodddev/distributed-order-saga/order-service/internal/infrastructure/http/handler"
+	"github.com/joaodddev/distributed-order-saga/order-service/internal/infrastructure/messaging"
 	"github.com/joaodddev/distributed-order-saga/order-service/internal/infrastructure/persistence/mysql"
+	"github.com/joaodddev/distributed-order-saga/order-service/internal/outbox"
 )
 
 func main() {
@@ -22,6 +25,17 @@ func main() {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 	defer db.Close()
+
+	kafkaBrokers := []string{getEnv("KAFKA_BROKERS", "localhost:9092")}
+	producer := messaging.NewProducer(kafkaBrokers)
+	defer producer.Close()
+
+	outboxRepository := mysql.NewOutboxRepository(db)
+	relay := outbox.NewRelay(outboxRepository, producer)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go relay.Start(ctx)
 
 	orderRepository := mysql.NewOrderRepository(db)
 	createOrderUseCase := usecase.NewCreateOrder(orderRepository)
