@@ -24,6 +24,34 @@ type OrderCreatedItem struct {
 	UnitPrice float64 `json:"unitPrice"`
 }
 
+type OrderCancelledEvent struct {
+	EventType     string                `json:"eventType"`
+	Version       int                   `json:"version"`
+	SagaID        string                `json:"sagaId"`
+	CorrelationID string                `json:"correlationId"`
+	OccurredAt    time.Time             `json:"occurredAt"`
+	Payload       OrderCancelledPayload `json:"payload"`
+}
+
+type OrderCancelledPayload struct {
+	OrderID string `json:"orderId"`
+	Reason  string `json:"reason"`
+}
+
+func NewOrderCancelledEvent(orderID, sagaID, correlationID, reason string) OrderCancelledEvent {
+	return OrderCancelledEvent{
+		EventType:     "order.cancelled",
+		Version:       1,
+		SagaID:        sagaID,
+		CorrelationID: correlationID,
+		OccurredAt:    time.Now().UTC(),
+		Payload: OrderCancelledPayload{
+			OrderID: orderID,
+			Reason:  reason,
+		},
+	}
+}
+
 func NewOrderCreatedEvent(order *Order) OrderCreatedEvent {
 	items := make([]OrderCreatedItem, len(order.Items))
 	for i, item := range order.Items {

@@ -24,3 +24,5 @@ type OrderRepository interface {
 	SaveWithOutboxEvent(ctx context.Context, order *domain.Order, event OutboxEvent) error
 	FindByID(ctx context.Context, id uuid.UUID) (*domain.Order, error)
 }
+
+CancelWithOutboxEvent(ctx context.Context, orderID uuid.UUID, event OutboxEvent) error

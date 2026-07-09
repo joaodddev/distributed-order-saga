@@ -45,6 +45,10 @@ func main() {
 
 	port := getEnv("PORT", "8080")
 	log.Printf("order-service listening on port %s", port)
+	cancelOrderUseCase := usecase.NewCancelOrder(orderRepository)
+	compensationConsumer := messaging.NewConsumer(kafkaBrokers, "order-service-compensation-group", cancelOrderUseCase)
+	defer compensationConsumer.Close()
+	go compensationConsumer.Start(ctx)
 	if err := router.Run(":" + port); err != nil {
 		log.Fatalf("failed to start server: %v", err)
 	}

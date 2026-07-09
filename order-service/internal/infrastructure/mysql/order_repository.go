@@ -81,3 +81,30 @@ func (r *OrderRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.O
 
 	return &order, nil
 }
+
+func (r *OrderRepository) CancelWithOutboxEvent(ctx context.Context, orderID uuid.UUID, event output.OutboxEvent) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	_, err = tx.ExecContext(ctx,
+		`UPDATE orders SET status = ? WHERE id = ?`,
+		domain.OrderStatusCancelled, orderID.String(),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update order status: %w", err)
+	}
+
+	_, err = tx.ExecContext(ctx,
+		`INSERT INTO outbox_events (id, aggregate_id, event_type, payload, published, created_at)
+		 VALUES (?, ?, ?, ?, FALSE, ?)`,
+		event.ID.String(), event.AggregateID.String(), event.EventType, event.Payload, event.CreatedAt,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to insert outbox event: %w", err)
+	}
+
+	return tx.Commit()
+}
