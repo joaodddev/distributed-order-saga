@@ -12,6 +12,10 @@ module PaymentService
         def find_by_order_id(order_id)
           raise NotImplementedError
         end
+
+        def refund_with_outbox_event(reservation, event)
+          raise NotImplementedError
+        end
       end
     end
   end

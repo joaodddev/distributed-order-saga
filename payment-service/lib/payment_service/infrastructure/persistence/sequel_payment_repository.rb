@@ -47,6 +47,23 @@ module PaymentService
             created_at: row[:created_at]
           )
         end
+
+        # Estorna a reserva (UPDATE, não INSERT) e grava o outbox event na mesma
+        # transação — mesma garantia de atomicidade do save_with_outbox_event.
+        def refund_with_outbox_event(reservation, event)
+          @db.transaction do
+            @db[:payments].where(order_id: reservation.order_id).update(status: reservation.status)
+
+            @db[:outbox_events].insert(
+              id: event[:id],
+              aggregate_id: event[:aggregate_id],
+              event_type: event[:event_type],
+              payload: Sequel.pg_jsonb(event[:payload]),
+              published: false,
+              created_at: Time.now.utc
+            )
+          end
+        end
       end
     end
   end
