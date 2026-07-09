@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+require "dotenv/load"
+require_relative "../lib/payment_service/infrastructure/persistence/database"
+require_relative "../lib/payment_service/infrastructure/messaging/kafka_producer"
+require_relative "../lib/payment_service/outbox/relay"
+
+db = PaymentService::Infrastructure::Persistence.connect
+producer = PaymentService::Infrastructure::Messaging::KafkaProducer.new(
+  brokers: ENV.fetch("KAFKA_BROKERS", "localhost:9092")
+)
+
+relay = PaymentService::Outbox::Relay.new(db: db, producer: producer)
+puts "payment-service outbox relay started"
+relay.start
