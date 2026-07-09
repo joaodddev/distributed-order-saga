@@ -1,0 +1,20 @@
+require "sequel"
+require_relative "lib/payment_service/infrastructure/persistence/database"
+
+namespace :db do
+  desc "Run pending migrations"
+  task :migrate do
+    Sequel.extension :migration
+    db = PaymentService::Infrastructure::Persistence.connect
+    Sequel::Migrator.run(db, "db/migrations")
+    puts "Migrations applied."
+  end
+
+  desc "Rollback all migrations"
+  task :rollback do
+    Sequel.extension :migration
+    db = PaymentService::Infrastructure::Persistence.connect
+    Sequel::Migrator.run(db, "db/migrations", target: 0)
+    puts "Migrations rolled back."
+  end
+end
