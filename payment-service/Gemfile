@@ -9,6 +9,9 @@ gem "pg", "~> 1.5"
 gem "racecar", "~> 2.12"
 gem "dotenv", "~> 3.1"
 gem "json", "~> 2.7"
+gem "opentelemetry-sdk", "~> 1.4"
+gem "opentelemetry-exporter-otlp", "~> 0.29"
+gem "opentelemetry-semantic_conventions", "~> 1.10"
 
 group :development, :test do
   gem "rspec", "~> 3.13"

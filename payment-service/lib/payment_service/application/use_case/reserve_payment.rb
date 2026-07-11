@@ -2,6 +2,7 @@ require "securerandom"
 require_relative "../../domain/payment_reservation"
 require_relative "../../domain/payment_reserved_event"
 require_relative "../../domain/payment_failed_event"
+require_relative "../../infrastructure/observability/tracer"
 
 module PaymentService
   module Application
@@ -11,15 +12,19 @@ module PaymentService
           @repository = repository
         end
 
-        # order_created_payload é o payload já parseado do evento order.created;
-        # saga_id/correlation_id vêm do envelope do evento, não são gerados aqui —
-        # é isso que mantém o rastreamento coerente do início ao fim da saga.
         def execute(order_created_payload:, saga_id:, correlation_id:)
-          reservation = build_reservation(order_created_payload)
-          event = build_outbox_event(reservation, saga_id, correlation_id)
+          PaymentService::Infrastructure::Observability.tracer.in_span("ReservePayment.execute") do |span|
+            span.set_attribute("saga.id", saga_id)
+            span.set_attribute("order.id", order_created_payload["orderId"])
 
-          @repository.save_with_outbox_event(reservation, event)
-          reservation
+            reservation = build_reservation(order_created_payload)
+            event = build_outbox_event(reservation, saga_id, correlation_id)
+
+            @repository.save_with_outbox_event(reservation, event)
+
+            span.set_attribute("payment.status", reservation.status)
+            reservation
+          end
         end
 
         private

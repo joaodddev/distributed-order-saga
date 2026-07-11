@@ -3,6 +3,7 @@ require "json"
 require_relative "../persistence/database"
 require_relative "../persistence/sequel_payment_repository"
 require_relative "../../application/use_case/reserve_payment"
+require_relative "../observability/tracer"
 
 module PaymentService
   module Infrastructure
@@ -11,6 +12,11 @@ module PaymentService
         subscribes_to "order.created"
 
         def initialize
+          PaymentService::Infrastructure::Observability.setup(
+            service_name: "payment-service",
+            endpoint: ENV.fetch("OTEL_COLLECTOR_ENDPOINT", "http://localhost:4318/v1/traces")
+          )
+
           db = PaymentService::Infrastructure::Persistence.connect
           repository = PaymentService::Infrastructure::Persistence::SequelPaymentRepository.new(db)
           @use_case = PaymentService::Application::UseCase::ReservePayment.new(repository: repository)
