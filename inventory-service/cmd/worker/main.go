@@ -7,11 +7,20 @@ import (
 
 	"github.com/joaodddev/distributed-order-saga/inventory-service/internal/application/usecase"
 	"github.com/joaodddev/distributed-order-saga/inventory-service/internal/infrastructure/messaging"
+	"github.com/joaodddev/distributed-order-saga/inventory-service/internal/infrastructure/observability"
 	"github.com/joaodddev/distributed-order-saga/inventory-service/internal/infrastructure/persistence/mysql"
 	"github.com/joaodddev/distributed-order-saga/inventory-service/internal/outbox"
 )
 
 func main() {
+	ctx := context.Background()
+
+	shutdown, err := observability.InitTracer(ctx, "inventory-service", getEnv("OTEL_COLLECTOR_ENDPOINT", "localhost:4317"))
+	if err != nil {
+		log.Fatalf("failed to initialize tracer: %v", err)
+	}
+	defer shutdown(ctx)
+
 	db, err := mysql.NewConnection(mysql.Config{
 		Host:     getEnv("DB_HOST", "localhost"),
 		Port:     getEnv("DB_PORT", "3307"),
@@ -32,8 +41,9 @@ func main() {
 	outboxRepository := mysql.NewOutboxRepository(db)
 	relay := outbox.NewRelay(outboxRepository, producer)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+
 	go relay.Start(ctx)
 
 	stockRepository := mysql.NewStockRepository(db)
