@@ -104,3 +104,14 @@ func (r *OrderRepository) CancelWithOutboxEvent(ctx context.Context, orderID uui
 
 	return tx.Commit()
 }
+
+func (r *OrderRepository) ConfirmWithOutboxEvent(ctx context.Context, orderID uuid.UUID) error {
+	_, err := r.db.ExecContext(ctx,
+		`UPDATE orders SET status = ? WHERE id = ?`,
+		domain.OrderStatusConfirmed, orderID.String(),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to confirm order: %w", err)
+	}
+	return nil
+}
