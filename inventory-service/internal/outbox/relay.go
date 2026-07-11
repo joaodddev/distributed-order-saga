@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/joaodddev/distributed-order-saga/order-service/internal/application/port/output"
+	"github.com/joaodddev/distributed-order-saga/inventory-service/internal/application/port/output"
 )
 
 // Publisher é satisfeito pelo messaging.Producer, mas a interface fica aqui
