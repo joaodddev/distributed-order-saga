@@ -1,6 +1,7 @@
 require "racecar"
 require "json"
 require "redis"
+require_relative "../observability/tracer"
 require_relative "redis_idempotency_store"
 require_relative "kafka_producer"
 require_relative "../../application/use_case/confirm_order"
@@ -12,6 +13,11 @@ module NotificationService
         subscribes_to "inventory.reserved"
 
         def initialize
+          NotificationService::Infrastructure::Observability.setup(
+            service_name: "notification-service",
+            endpoint: ENV.fetch("OTEL_COLLECTOR_ENDPOINT", "http://localhost:4318/v1/traces")
+          )
+
           redis = Redis.new(url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0"))
           idempotency_store = RedisIdempotencyStore.new(redis)
           publisher = KafkaProducer.new(brokers: ENV.fetch("KAFKA_BROKERS", "localhost:9092"))
