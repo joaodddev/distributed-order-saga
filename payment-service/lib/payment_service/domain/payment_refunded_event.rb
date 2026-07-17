@@ -1,3 +1,5 @@
+require "time"
+
 module PaymentService
   module Domain
     class PaymentRefundedEvent

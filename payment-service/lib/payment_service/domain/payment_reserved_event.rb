@@ -1,3 +1,4 @@
+require "time"
 require "securerandom"
 
 module PaymentService
