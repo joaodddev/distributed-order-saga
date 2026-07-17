@@ -1,4 +1,5 @@
 require "securerandom"
+require "time"
 
 module NotificationService
   module Domain
