@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - 'order-service/**'
+      - 'inventory-service/**'
+      - 'payment-service/**'
+      - 'notification-service/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    paths:
+      - 'order-service/**'
+      - 'inventory-service/**'
+      - 'payment-service/**'
+      - 'notification-service/**'
+      - '.github/workflows/ci.yml'
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      order-service: ${{ steps.filter.outputs.order-service }}
+      inventory-service: ${{ steps.filter.outputs.inventory-service }}
+      payment-service: ${{ steps.filter.outputs.payment-service }}
+      notification-service: ${{ steps.filter.outputs.notification-service }}
+      workflow: ${{ steps.filter.outputs.workflow }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            order-service:
+              - 'order-service/**'
+            inventory-service:
+              - 'inventory-service/**'
+            payment-service:
+              - 'payment-service/**'
+            notification-service:
+              - 'notification-service/**'
+            workflow:
+              - '.github/workflows/ci.yml'
+
+  order-service:
+    needs: changes
+    if: ${{ needs.changes.outputs.order-service == 'true' || needs.changes.outputs.workflow == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./order-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - run: go build ./...
+      - run: go test ./...
+
+  inventory-service:
+    needs: changes
+    if: ${{ needs.changes.outputs.inventory-service == 'true' || needs.changes.outputs.workflow == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./inventory-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - run: go build ./...
+      - run: go test ./...
+
+  payment-service:
+    needs: changes
+    if: ${{ needs.changes.outputs.payment-service == 'true' || needs.changes.outputs.workflow == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./payment-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+      - run: bundle exec rspec
+
+  notification-service:
+    needs: changes
+    if: ${{ needs.changes.outputs.notification-service == 'true' || needs.changes.outputs.workflow == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./notification-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+      - run: bundle exec rspec
