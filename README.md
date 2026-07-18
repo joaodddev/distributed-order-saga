@@ -20,6 +20,13 @@ order.created -> payment.reserved -> inventory.reserved -> order.confirmed
 
 Every event carries a sagaId and a correlationId created in the initial order.created event and propagated throughout the workflow.
 
+### Visual references
+
+- Architecture reference: [docs/assets/architecture-diagram.md](docs/assets/architecture-diagram.md)
+- Demo video guide: [docs/assets/demo-video.md](docs/assets/demo-video.md)
+
+A good screenshot to include in the repository README is a Jaeger trace for a completed saga or a Docker Compose overview showing the event-driven infrastructure.
+
 ## Services and stack
 
 | Service | Stack | Role |
