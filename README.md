@@ -25,6 +25,12 @@ Every event carries a sagaId and a correlationId created in the initial order.cr
 - Architecture reference: [docs/assets/architecture-diagram.md](docs/assets/architecture-diagram.md)
 - Demo video guide: [docs/assets/demo-video.md](docs/assets/demo-video.md)
 
+Architecture snapshot (placeholder):
+
+![Jaeger trace placeholder](docs/assets/jaeger-trace.svg)
+
+Substitua `docs/assets/jaeger-trace.svg` por uma captura real do Jaeger UI (PNG) nomeada `docs/assets/jaeger-trace.png`.
+
 A good screenshot to include in the repository README is a Jaeger trace for a completed saga or a Docker Compose overview showing the event-driven infrastructure.
 
 ## Services and stack
