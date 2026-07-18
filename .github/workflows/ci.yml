@@ -85,8 +85,15 @@ jobs:
         with:
           ruby-version: '3.2'
           bundler-cache: true
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libpq-dev libssl-dev pkg-config
+      - name: Bundler setup
+        run: |
+          bundle config set --local path 'vendor/bundle'
       - name: Install Ruby gems
-        run: bundle install --jobs 4 --retry 3
+        run: bundle install --jobs 4 --retry 3 --path vendor/bundle
       - name: Run RSpec
         run: bundle exec rspec
 
@@ -103,7 +110,14 @@ jobs:
         with:
           ruby-version: '3.2'
           bundler-cache: true
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libpq-dev libssl-dev pkg-config
+      - name: Bundler setup
+        run: |
+          bundle config set --local path 'vendor/bundle'
       - name: Install Ruby gems
-        run: bundle install --jobs 4 --retry 3
+        run: bundle install --jobs 4 --retry 3 --path vendor/bundle
       - name: Run RSpec
         run: bundle exec rspec
